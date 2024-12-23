@@ -20,27 +20,45 @@ namespace ApiCatalogo.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Produto>> Get()
         {
-            var produtos = _context.Produtos.ToList();
-
-            if (produtos is null)
+            try
             {
-                return NotFound("Produtos não encontrados.");
-            }
+                var produtos = _context.Produtos.AsNoTracking().ToList();
 
-            return produtos;
+                if (produtos is null)
+                {
+                    return NotFound("Produtos não encontrados.");
+                }
+
+                return produtos;
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ocorreu um problema ao tratar sua solicitação.");
+            }
+            
         }
 
         [HttpGet("{id:int}", Name="ObterProduto")] //Nomeia a rota como ObterProduto
         public ActionResult<Produto> Get(int id)
         {
-            var produto = _context.Produtos
+            try
+            {
+                var produto = _context.Produtos
                 .FirstOrDefault(p => p.ProdutoId == id);
 
-            if (produto is null)
-            {
-                return NotFound("Produto não encontrado.");
+                if (produto is null)
+                {
+                    return NotFound("Produto não encontrado.");
+                }
+                return produto;
             }
-            return produto;
+            catch(Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ocorreu um problema ao tratar sua solicitação.");
+            }
+            
         }
 
         [HttpPost]
@@ -58,7 +76,7 @@ namespace ApiCatalogo.Controllers
         {
             if (id != produto.ProdutoId)
             {
-                return BadRequest();
+                return BadRequest($"Dados inválidos");
             }
 
             _context.Entry(produto).State = EntityState.Modified;
