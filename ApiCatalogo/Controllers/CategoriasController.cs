@@ -1,4 +1,5 @@
 ﻿using ApiCatalogo.Data;
+using ApiCatalogo.Filters;
 using ApiCatalogo.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,15 +12,18 @@ namespace ApiCatalogo.Controllers
     public class CategoriasController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILogger _logger;
 
-        public CategoriasController(AppDbContext context)
+        public CategoriasController(AppDbContext context, ILogger<CategoriasController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet("produtos")]
         public async Task<ActionResult<IEnumerable<Categoria>>> GetCategoriasProdutosAsync()
         {
+            _logger.LogInformation("============== GET api/categorias/produtos ==============");
             try
             {
                 //return _context.Categorias.Include(p => p.Produtos).AsNoTracking().ToList();
@@ -34,8 +38,11 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet]
+        [ServiceFilter(typeof(ApiLoggingFilter))]
         public async Task<ActionResult<IEnumerable<Categoria>>> GetAsync()
         {
+            _logger.LogInformation("============== GET api/categorias ==============");
+
             try
             {
                 var categorias = await _context.Categorias.AsNoTracking().ToListAsync();
@@ -55,8 +62,8 @@ namespace ApiCatalogo.Controllers
         }
         [HttpGet("{id:int}", Name = "ObterCategoria")]
         public async Task<ActionResult<Categoria>> GetByIdAsync(int id)
-        { 
-
+        {
+            _logger.LogInformation($"============== GET api/categorias/id = {id} ==============");
             try
             {
                 var categoria = await _context.Categorias
@@ -79,6 +86,8 @@ namespace ApiCatalogo.Controllers
         [HttpPost]
         public async Task<ActionResult<Categoria>> PostAsync(Categoria categoria)
         {
+            _logger.LogInformation("============== POST api/categoria ==============");
+
             _context.Categorias.Add(categoria);
             await _context.SaveChangesAsync();
 
@@ -90,6 +99,7 @@ namespace ApiCatalogo.Controllers
         [HttpPut("{id:int}")]
         public async Task<ActionResult> PutAsync(int id, Categoria categoria)
         {
+            _logger.LogInformation("============== PUT api/categorias/ ==============");
             try
             {
                 if (id != categoria.CategoriaId)
@@ -112,6 +122,7 @@ namespace ApiCatalogo.Controllers
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> DeleteAsync(int id)
         {
+            _logger.LogInformation($"============== GET api/categorias/id = {id} ==============");
             try
             {
                 var categoria = await _context.Categorias
