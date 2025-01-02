@@ -21,75 +21,50 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet("produtos")]
+        [ServiceFilter(typeof(ApiLoggingFilter))]
         public async Task<ActionResult<IEnumerable<Categoria>>> GetCategoriasProdutosAsync()
         {
-            _logger.LogInformation("============== GET api/categorias/produtos ==============");
-            try
-            {
-                //return _context.Categorias.Include(p => p.Produtos).AsNoTracking().ToList();
-                return await _context.Categorias.Include(p => p.Produtos)
-                .Where(c => c.CategoriaId <= 5)
-                .AsNoTracking().ToListAsync();
-            }
-            catch (Exception)
-            {
-                throw new Exception("Ocorreu um erro na operação.");
-            }
+            //return _context.Categorias.Include(p => p.Produtos).AsNoTracking().ToList();
+            return await _context.Categorias.Include(p => p.Produtos)
+            .Where(c => c.CategoriaId <= 5)
+            .AsNoTracking().ToListAsync();
         }
 
         [HttpGet]
         [ServiceFilter(typeof(ApiLoggingFilter))]
         public async Task<ActionResult<IEnumerable<Categoria>>> GetAsync()
         {
-            _logger.LogInformation("============== GET api/categorias ==============");
-
-            try
-            {
-                var categorias = await _context.Categorias.AsNoTracking().ToListAsync();
-
-                if (categorias is null)
-                {
-                    return NotFound("Categorias não encontradas.");
-                }
-
-                return categorias;
-            }
-            catch (Exception)
-            {
-                throw new Exception("Ocorreu um erro na operação.");
-            }
-            
+            return await _context.Categorias.AsNoTracking().ToListAsync();
         }
+
         [HttpGet("{id:int}", Name = "ObterCategoria")]
-        public async Task<ActionResult<Categoria>> GetByIdAsync(int id)
+        [ServiceFilter(typeof(ApiLoggingFilter))]
+        public ActionResult<Categoria> GetById(int id)
         {
-            _logger.LogInformation($"============== GET api/categorias/id = {id} ==============");
-            try
-            {
-                var categoria = await _context.Categorias
-                .FirstOrDefaultAsync(c => c.CategoriaId == id);
 
-                if (categoria is null)
-                {
-                    return NotFound("Dados inválidos.");
-                }
+            var categoria = _context.Categorias
+            .FirstOrDefault(c => c.CategoriaId == id);
 
-                return categoria;
-            }
-            catch (Exception)
+            if (categoria is null)
             {
-                throw new Exception("Ocorreu um erro na operação.");
+                _logger.LogWarning($"Categoria com id={id} não encontrada.");
+                return NotFound("Dados inválidos.");
             }
-            
+
+            return Ok(categoria);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Categoria>> PostAsync(Categoria categoria)
+        public ActionResult<Categoria> Post(Categoria categoria)
         {
-            _logger.LogInformation("============== POST api/categoria ==============");
+            if (categoria is null)
+            {
+                _logger.LogWarning("Dados inválidos.");
+                return BadRequest("Dados inválidos.");
+            }
 
             _context.Categorias.Add(categoria);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             //Devolve a rota ObterProduto
             return new CreatedAtRouteResult("ObterProduto",
@@ -97,51 +72,38 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> PutAsync(int id, Categoria categoria)
+        public ActionResult Put(int id, Categoria categoria)
         {
-            _logger.LogInformation("============== PUT api/categorias/ ==============");
-            try
+            if (id != categoria.CategoriaId)
             {
-                if (id != categoria.CategoriaId)
-                {
-                    return BadRequest();
-                }
-                _context.Entry(categoria).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
-
-                return Ok(categoria);
-
+                _logger.LogWarning("Dados inválidos.");
+                return BadRequest("Dados inválidos.");
             }
-            catch(Exception)
-            {
-                throw new Exception("Ocorreu um erro na operação.");
-            }
-            
+            _context.Entry(categoria).State = EntityState.Modified;
+            _context.SaveChanges();
+
+            return Ok(categoria);
+
+
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult> DeleteAsync(int id)
+        [ServiceFilter(typeof(ApiLoggingFilter))]
+        public ActionResult Delete(int id)
         {
-            _logger.LogInformation($"============== GET api/categorias/id = {id} ==============");
-            try
+            var categoria = _context.Categorias
+            .FirstOrDefault(c => c.CategoriaId == id);
+
+            if (categoria is null)
             {
-                var categoria = await _context.Categorias
-                .FirstOrDefaultAsync(c => c.CategoriaId == id);
-
-                if (categoria is null)
-                {
-                    return NotFound("Categoria não localizada.");
-                }
-
-                _context.Categorias.Remove(categoria);
-                await _context.SaveChangesAsync();
-
-                return Ok(categoria);
+                _logger.LogError($"Categoria com id={id} não encontrada");
+                return NotFound($"Categoria com id={id} não encontrada");
             }
-            catch(Exception)
-            {
-                throw new Exception("Ocorreu um erro na operação.");
-            }
+
+            _context.Categorias.Remove(categoria);
+            _context.SaveChanges();
+
+            return Ok(categoria);
         }
     }
 }
