@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiCatalogo.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class ProdutosController : ControllerBase
     {
@@ -18,11 +18,11 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Produto>> Get()
+        public async Task<ActionResult<IEnumerable<Produto>>> GetAsync()
         {
             try
             {
-                var produtos = _context.Produtos.AsNoTracking().ToList();
+                var produtos = await _context.Produtos.AsNoTracking().ToListAsync();
 
                 if (produtos is null)
                 {
@@ -40,12 +40,12 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet("{id:int}", Name="ObterProduto")] //Nomeia a rota como ObterProduto
-        public ActionResult<Produto> Get(int id)
+        public async Task<ActionResult<Produto>> GetByIdAsync(int id)
         {
             try
             {
-                var produto = _context.Produtos
-                .FirstOrDefault(p => p.ProdutoId == id);
+                var produto = await _context.Produtos
+                .FirstOrDefaultAsync(p => p.ProdutoId == id);
 
                 if (produto is null)
                 {
@@ -62,17 +62,17 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpPost]
-        public ActionResult Post(Produto produto)
+        public async Task<ActionResult> PostAsync(Produto produto)
         {
             _context.Produtos.Add(produto);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             //Devolve a rota ObterProduto
             return new CreatedAtRouteResult("ObterProduto",
                 new {id = produto.ProdutoId}, produto);
         }
         [HttpPut("{id:int}")]
-        public ActionResult Put(int id, Produto produto)
+        public async Task<ActionResult> PutAsync(int id, Produto produto)
         {
             if (id != produto.ProdutoId)
             {
@@ -80,16 +80,16 @@ namespace ApiCatalogo.Controllers
             }
 
             _context.Entry(produto).State = EntityState.Modified;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return Ok(produto);
         }
 
         [HttpDelete("{id:int}")]
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> DeleteAsync(int id)
         {
-            var produto = _context.Produtos
-                .FirstOrDefault(p => p.ProdutoId == id);
+            var produto = await _context.Produtos
+                .FirstOrDefaultAsync(p => p.ProdutoId == id);
             // var produto = _context.Produtos.Find(id);
 
             if(produto is null)
@@ -98,7 +98,7 @@ namespace ApiCatalogo.Controllers
             }
 
             _context.Produtos.Remove(produto);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return Ok(produto);
         }
