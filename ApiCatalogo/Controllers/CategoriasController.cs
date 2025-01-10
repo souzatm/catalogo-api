@@ -1,6 +1,7 @@
 ﻿using ApiCatalogo.Data;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Models;
+using ApiCatalogo.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,15 +12,16 @@ namespace ApiCatalogo.Controllers
     [ApiController]
     public class CategoriasController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly ICategoriaRepository _repository;
         private readonly ILogger _logger;
 
-        public CategoriasController(AppDbContext context, ILogger<CategoriasController> logger)
+        public CategoriasController(ICategoriaRepository repository, ILogger<CategoriasController> logger)
         {
-            _context = context;
+            _repository = repository;
             _logger = logger;
         }
 
+        /*
         [HttpGet("produtos")]
         [ServiceFilter(typeof(ApiLoggingFilter))]
         public async Task<ActionResult<IEnumerable<Categoria>>> GetCategoriasProdutosAsync()
@@ -29,21 +31,21 @@ namespace ApiCatalogo.Controllers
             .Where(c => c.CategoriaId <= 5)
             .AsNoTracking().ToListAsync();
         }
+        */
 
         [HttpGet]
-        [ServiceFilter(typeof(ApiLoggingFilter))]
-        public async Task<ActionResult<IEnumerable<Categoria>>> GetAsync()
+        //[ServiceFilter(typeof(ApiLoggingFilter))]
+        public ActionResult<IEnumerable<Categoria>> Get()
         {
-            return await _context.Categorias.AsNoTracking().ToListAsync();
+            var categorias = _repository.GetCategorias();
+            return Ok(categorias);
         }
 
         [HttpGet("{id:int}", Name = "ObterCategoria")]
-        [ServiceFilter(typeof(ApiLoggingFilter))]
         public ActionResult<Categoria> GetById(int id)
         {
 
-            var categoria = _context.Categorias
-            .FirstOrDefault(c => c.CategoriaId == id);
+            var categoria = _repository.GetCategoria(id);
 
             if (categoria is null)
             {
@@ -63,11 +65,8 @@ namespace ApiCatalogo.Controllers
                 return BadRequest("Dados inválidos.");
             }
 
-            _context.Categorias.Add(categoria);
-            _context.SaveChanges();
-
-            //Devolve a rota ObterProduto
-            return new CreatedAtRouteResult("ObterProduto",
+            _repository.Create(categoria);
+            return new CreatedAtRouteResult("ObterCategoria",
                 new { id = categoria.CategoriaId }, categoria);
         }
 
@@ -79,20 +78,15 @@ namespace ApiCatalogo.Controllers
                 _logger.LogWarning("Dados inválidos.");
                 return BadRequest("Dados inválidos.");
             }
-            _context.Entry(categoria).State = EntityState.Modified;
-            _context.SaveChanges();
-
+            _repository.Update(categoria);
             return Ok(categoria);
-
-
         }
 
         [HttpDelete("{id:int}")]
         [ServiceFilter(typeof(ApiLoggingFilter))]
         public ActionResult Delete(int id)
         {
-            var categoria = _context.Categorias
-            .FirstOrDefault(c => c.CategoriaId == id);
+            var categoria = _repository.GetCategoria(id);
 
             if (categoria is null)
             {
@@ -100,9 +94,7 @@ namespace ApiCatalogo.Controllers
                 return NotFound($"Categoria com id={id} não encontrada");
             }
 
-            _context.Categorias.Remove(categoria);
-            _context.SaveChanges();
-
+            _repository.Delete(id);
             return Ok(categoria);
         }
     }
