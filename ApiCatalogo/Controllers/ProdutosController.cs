@@ -1,6 +1,7 @@
 ﻿using ApiCatalogo.Data;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Models;
+using ApiCatalogo.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,20 +12,20 @@ namespace ApiCatalogo.Controllers
     [ApiController]
     public class ProdutosController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IProdutoRepository _repository;
         private readonly ILogger<ProdutosController> _logger;
 
-        public ProdutosController(AppDbContext context, ILogger<ProdutosController> logger)
+        public ProdutosController(IProdutoRepository repository, ILogger<ProdutosController> logger)
         {
-            _context = context;
+            _repository = repository;
             _logger = logger;
         }
 
         [HttpGet]
         [ServiceFilter(typeof(ApiLoggingFilter))]
-        public async Task<ActionResult<IEnumerable<Produto>>> GetAsync()
+        public ActionResult<IEnumerable<Produto>> GetProdutos()
         {
-            return await _context.Produtos.AsNoTracking().ToListAsync();
+            return _repository.GetProdutos().ToList();
         }
 
 
@@ -32,8 +33,7 @@ namespace ApiCatalogo.Controllers
         [ServiceFilter(typeof(ApiLoggingFilter))]
         public ActionResult<Produto> GetById(int id)
         {
-            var produto = _context.Produtos
-            .FirstOrDefault(p => p.ProdutoId == id);
+            var produto = _repository.GetProdutoById(id);
 
             if (produto is null)
             {
@@ -53,9 +53,7 @@ namespace ApiCatalogo.Controllers
                 return BadRequest("Dados inválidos.");
             }
 
-            _context.Produtos.Add(produto);
-            _context.SaveChangesAsync();
-
+            _repository.Create(produto);
             //Devolve a rota ObterProduto
             return new CreatedAtRouteResult("ObterProduto",
                 new { id = produto.ProdutoId }, produto);
@@ -69,17 +67,14 @@ namespace ApiCatalogo.Controllers
                 return BadRequest($"Produto com id={id} não encontrado");
             }
 
-            _context.Entry(produto).State = EntityState.Modified;
-            _context.SaveChanges();
-
+            _repository.Update(produto);
             return Ok(produto);
         }
 
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            var produto = _context.Produtos
-                .FirstOrDefault(p => p.ProdutoId == id);
+            var produto = _repository.GetProdutoById(id);
             // var produto = _context.Produtos.Find(id);
 
             if (produto is null)
@@ -88,9 +83,7 @@ namespace ApiCatalogo.Controllers
                 return NotFound($"Produto com id={id} não encontrado");
             }
 
-            _context.Produtos.Remove(produto);
-            _context.SaveChanges();
-
+            _repository.Delete(id);
             return Ok(produto);
         }
     }

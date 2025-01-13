@@ -14,9 +14,9 @@ namespace ApiCatalogo.Repository
 
         public IEnumerable<Categoria> GetCategorias()
         {
-            return _context.Categorias.ToList();
+            return _context.Categorias;
         }
-        public Categoria GetCategoria(int id)
+        public Categoria GetCategoriaById(int id)
         {
             return _context.Categorias.FirstOrDefault(c => c.CategoriaId == id);
         }

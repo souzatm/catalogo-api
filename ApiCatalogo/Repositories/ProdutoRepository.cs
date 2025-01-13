@@ -16,7 +16,7 @@ namespace ApiCatalogo.Repositories
 
         public IEnumerable<Produto> GetProdutos()
         {
-            return _context.Produtos.ToList();
+            return _context.Produtos;
         }
 
         public Produto GetProdutoById(int id)

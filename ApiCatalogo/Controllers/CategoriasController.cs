@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiCatalogo.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class CategoriasController : ControllerBase
     {
@@ -42,10 +42,10 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet("{id:int}", Name = "ObterCategoria")]
-        public ActionResult<Categoria> GetById(int id)
+        public ActionResult<Categoria> GetCategoria(int id)
         {
 
-            var categoria = _repository.GetCategoria(id);
+            var categoria = _repository.GetCategoriaById(id);
 
             if (categoria is null)
             {
@@ -86,7 +86,7 @@ namespace ApiCatalogo.Controllers
         [ServiceFilter(typeof(ApiLoggingFilter))]
         public ActionResult Delete(int id)
         {
-            var categoria = _repository.GetCategoria(id);
+            var categoria = _repository.GetCategoriaById(id);
 
             if (categoria is null)
             {
