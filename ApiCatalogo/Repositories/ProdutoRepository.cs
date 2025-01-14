@@ -1,6 +1,5 @@
 ﻿using ApiCatalogo.Data;
 using ApiCatalogo.Models;
-using ApiCatalogo.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 

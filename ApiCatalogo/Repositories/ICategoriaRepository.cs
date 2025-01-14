@@ -1,6 +1,6 @@
 ﻿using ApiCatalogo.Models;
 
-namespace ApiCatalogo.Repositories.Interfaces
+namespace ApiCatalogo.Repository
 {
     public interface ICategoriaRepository
     {

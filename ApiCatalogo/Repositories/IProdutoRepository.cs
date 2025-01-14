@@ -1,6 +1,6 @@
 ﻿using ApiCatalogo.Models;
 
-namespace ApiCatalogo.Repositories.Interfaces
+namespace ApiCatalogo.Repositories
 {
     public interface IProdutoRepository
     {

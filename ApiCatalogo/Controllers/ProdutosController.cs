@@ -1,7 +1,7 @@
 ﻿using ApiCatalogo.Data;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Models;
-using ApiCatalogo.Repositories.Interfaces;
+using ApiCatalogo.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
