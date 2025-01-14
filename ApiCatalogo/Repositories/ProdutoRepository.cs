@@ -1,64 +1,20 @@
 ﻿using ApiCatalogo.Data;
 using ApiCatalogo.Models;
+using ApiCatalogo.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiCatalogo.Repositories
 {
-    public class ProdutoRepository : IProdutoRepository
+    public class ProdutoRepository : Repository<Produto>, IProdutoRepository
     {
-        private readonly AppDbContext _context;
-
-        public ProdutoRepository(AppDbContext context)
+        public ProdutoRepository(AppDbContext context) : base(context)
         {
-            _context = context;
         }
 
-        public IEnumerable<Produto> GetProdutos()
+        public IEnumerable<Produto> GetProdutosPorCategoria(int id)
         {
-            return _context.Produtos;
-        }
-
-        public Produto GetProdutoById(int id)
-        {
-            return _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
-        }
-
-        public Produto Create(Produto produto)
-        {
-            if (produto == null)
-            {
-                throw new ArgumentNullException(nameof(produto));
-            }
-
-            _context.Produtos.Add(produto);
-            _context.SaveChanges();
-            return produto;
-        }
-
-        public Produto Update(Produto produto)
-        {
-            if (produto == null)
-            {
-                throw new ArgumentNullException(nameof(produto));
-            }
-
-            _context.Entry(produto).State = EntityState.Modified;
-            _context.SaveChanges();
-            return produto;
-        }
-
-        public Produto Delete(int id)
-        {
-            var produto = _context.Produtos.Find(id);
-
-            if (produto == null)
-            {
-                throw new ArgumentNullException(nameof(produto));
-            }
-            _context.Remove(id);
-            _context.SaveChanges();
-            return produto;
+            return GetAll().Where(c => c.CategoriaId == id);
         }
     }
 }
