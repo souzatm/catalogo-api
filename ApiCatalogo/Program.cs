@@ -3,6 +3,7 @@ using ApiCatalogo.Extensions;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Logging;
 using ApiCatalogo.Repositories;
+using ApiCatalogo.Repositories.Interfaces;
 using ApiCatalogo.Repository;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
@@ -28,8 +29,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<ApiLoggingFilter>();
-builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
-builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
+
+//builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+//builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 builder.Logging.AddProvider(new CustomLoggerProvider(new CustomLoggerProviredConfiguration
 {
