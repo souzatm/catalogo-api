@@ -1,7 +1,9 @@
 ﻿using ApiCatalogo.Data;
+using ApiCatalogo.DTOs;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Models;
 using ApiCatalogo.Repositories.Interfaces;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,11 +16,13 @@ namespace ApiCatalogo.Controllers
     {
         private readonly IUnitOfWork _uof;
         private readonly ILogger _logger;
+        private readonly IMapper _mapper;
 
-        public CategoriasController(ILogger<CategoriasController> logger, IUnitOfWork uof)
+        public CategoriasController(ILogger<CategoriasController> logger, IUnitOfWork uof, IMapper mapper)
         {
             _logger = logger;
             _uof = uof;
+            _mapper = mapper;
         }
 
         /*
@@ -35,14 +39,17 @@ namespace ApiCatalogo.Controllers
 
         [HttpGet]
         //[ServiceFilter(typeof(ApiLoggingFilter))]
-        public ActionResult<IEnumerable<Categoria>> Get()
+        public ActionResult<IEnumerable<CategoriaDTO>> Get()
         {
             var categorias = _uof.CategoriaRepository.GetAll();
-            return Ok(categorias);
+
+            var categoriasDto = _mapper.Map<IEnumerable<CategoriaDTO>>(categorias);
+
+            return Ok(categoriasDto);
         }
 
         [HttpGet("{id:int}", Name = "ObterCategoria")]
-        public ActionResult<Categoria> GetCategoria(int id)
+        public ActionResult<CategoriaDTO> GetCategoria(int id)
         {
 
             var categoria = _uof.CategoriaRepository.GetById(c=> c.CategoriaId == id);
@@ -53,41 +60,51 @@ namespace ApiCatalogo.Controllers
                 return NotFound("Dados inválidos.");
             }
 
+            var categoriasDto = _mapper.Map<CategoriaDTO>(categoria);
+
             return Ok(categoria);
         }
 
         [HttpPost]
-        public ActionResult<Categoria> Post(Categoria categoria)
+        public ActionResult<CategoriaDTO> Post(CategoriaDTO categoriaDto)
         {
-            if (categoria is null)
+            if (categoriaDto is null)
             {
                 _logger.LogWarning("Dados inválidos.");
                 return BadRequest("Dados inválidos.");
             }
 
-            _uof.CategoriaRepository.Create(categoria);
+            var categoria = _mapper.Map<Categoria>(categoriaDto);
+            var novaCategoria =  _uof.CategoriaRepository.Create(categoria);
             _uof.Commit();
 
+            var novaCategoriaDto = _mapper.Map<CategoriaDTO>(novaCategoria);
+
             return new CreatedAtRouteResult("ObterCategoria",
-                new { id = categoria.CategoriaId }, categoria);
+                new { id = novaCategoriaDto.CategoriaId }, novaCategoriaDto);
         }
 
         [HttpPut("{id:int}")]
-        public ActionResult Put(int id, Categoria categoria)
+        public ActionResult<CategoriaDTO> Put(int id, CategoriaDTO categoriaDto)
         {
-            if (id != categoria.CategoriaId)
+            if (id != categoriaDto.CategoriaId)
             {
                 _logger.LogWarning("Dados inválidos.");
                 return BadRequest("Dados inválidos.");
             }
-            _uof.CategoriaRepository.Update(categoria);
+
+            var categoria = _mapper.Map<Categoria>(categoriaDto);
+            var categoriaAtualizada = _uof.CategoriaRepository.Update(categoria);
             _uof.Commit();
-            return Ok(categoria);
+
+            var categoriaAtualizadaDto = _mapper.Map<CategoriaDTO>(categoriaAtualizada);
+
+            return Ok(categoriaAtualizadaDto);
         }
 
         [HttpDelete("{id:int}")]
         [ServiceFilter(typeof(ApiLoggingFilter))]
-        public ActionResult Delete(int id)
+        public ActionResult<CategoriaDTO> Delete(int id)
         {
             var categoria = _uof.CategoriaRepository.GetById(c => c.CategoriaId == id);
 
@@ -95,11 +112,14 @@ namespace ApiCatalogo.Controllers
             {
                 _logger.LogError($"Categoria com id={id} não encontrada");
                 return NotFound($"Categoria com id={id} não encontrada");
-            }
+            };
 
-            _uof.CategoriaRepository.Delete(categoria);
+            var produtoDeletado = _uof.CategoriaRepository.Delete(categoria);
             _uof.Commit();
-            return Ok(categoria);
+
+            var produtoDeletadoDto = _mapper.Map<CategoriaDTO>(produtoDeletado);
+
+            return Ok(produtoDeletadoDto);
         }
     }
 }

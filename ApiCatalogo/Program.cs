@@ -1,4 +1,5 @@
 using ApiCatalogo.Data;
+using ApiCatalogo.DTOs.Mappings;
 using ApiCatalogo.Extensions;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Logging;
@@ -38,6 +39,8 @@ builder.Logging.AddProvider(new CustomLoggerProvider(new CustomLoggerProviredCon
 {
     LogLevel = LogLevel.Information
 }));
+
+builder.Services.AddAutoMapper(typeof(MappingDTOProfile));
 
 var app = builder.Build();
 
