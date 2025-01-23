@@ -4,7 +4,9 @@ using ApiCatalogo.Filters;
 using ApiCatalogo.Models;
 using ApiCatalogo.Repositories.Interfaces;
 using AutoMapper;
+using Azure;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -89,6 +91,48 @@ namespace ApiCatalogo.Controllers
             return new CreatedAtRouteResult("ObterProduto",
                 new { id = novoProdutoDto.ProdutoId }, novoProdutoDto);
         }
+
+        [HttpPatch("{id}/UpdatePartial")]
+        public ActionResult<ProdutoDTOUpdateRequest> Patch(int id, 
+            JsonPatchDocument<ProdutoDTOUpdateRequest> patchProdutoDTO)
+        {
+            if (patchProdutoDTO is null || id <= 0)
+            {
+                return BadRequest();
+            }
+
+            var produto = _uof.ProdutoRepository.GetById(c => c.ProdutoId == id);
+
+            if (produto is null)
+            {
+                return NotFound();
+            }
+
+            var produtoUpdateRequest = _mapper.Map<ProdutoDTOUpdateRequest>(produto);
+
+            //aplica as alterações e valida se o ModelState é valido
+            patchProdutoDTO.ApplyTo(produtoUpdateRequest, ModelState);
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (!TryValidateModel(produtoUpdateRequest))
+            {
+                return BadRequest(ModelState);
+            }
+
+            _mapper.Map(produtoUpdateRequest, produto);
+
+            _uof.ProdutoRepository.Update(produto);
+            _uof.Commit();
+
+            var produtoUpdateResponse = _mapper.Map<ProdutoDTOUpdateResponse>(produto);
+
+            return Ok(produtoUpdateResponse);
+        }
+
         [HttpPut("{id:int}")]
         public ActionResult<ProdutoDTO> Put(int id, ProdutoDTO produtoDto)
         {
