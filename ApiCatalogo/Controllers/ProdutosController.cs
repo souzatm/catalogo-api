@@ -48,23 +48,16 @@ namespace ApiCatalogo.Controllers
         public ActionResult<IEnumerable<ProdutoDTO>> GetParameters([FromQuery] ProdutosParameters parameters)
         {
             var produtos = _uof.ProdutoRepository.GetProdutosParameters(parameters);
-
-            var metadata = new
-            {
-                produtos.TotalCount,
-                produtos.PageSize,
-                produtos.CurrentPage,
-                produtos.TotalPages,
-                produtos.HasNext,
-                produtos.HasPrevious
-            };
-
-            Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metadata));
-
-            var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
-
-            return Ok(produtosDto);
+            return ObterProdutos(produtos);
         }
+
+        [HttpGet("filter/preco/pagination")]
+        public ActionResult<IEnumerable<ProdutoDTO>> GetProdutosFilterPreco([FromQuery] ProdutosFiltroPreco param)
+        {
+            var produtos = _uof.ProdutoRepository.GetProdutosFiltroPreco(param);
+            return ObterProdutos(produtos);
+        }
+
 
         [HttpGet]
         [ServiceFilter(typeof(ApiLoggingFilter))]
@@ -78,7 +71,7 @@ namespace ApiCatalogo.Controllers
         }
 
 
-        [HttpGet("{id:int}", Name = "ObterProduto")] //Nomeia a rota como ObterProduto
+        [HttpGet("{id:int}", Name = "RetornaProduto")] //Nomeia a rota como ObterProduto
         [ServiceFilter(typeof(ApiLoggingFilter))]
         public ActionResult<ProdutoDTO> GetById(int id)
         {
@@ -112,7 +105,7 @@ namespace ApiCatalogo.Controllers
 
             var novoProdutoDto = _mapper.Map<ProdutoDTO>(novoProduto);
 
-            return new CreatedAtRouteResult("ObterProduto",
+            return new CreatedAtRouteResult("RetornaProduto",
                 new { id = novoProdutoDto.ProdutoId }, novoProdutoDto);
         }
 
@@ -194,6 +187,27 @@ namespace ApiCatalogo.Controllers
             var produtoDeletadoDto = _mapper.Map<ProdutoDTO>(produtoDeletado);
 
             return Ok(produtoDeletadoDto);
+        }
+
+        
+
+        private ActionResult<IEnumerable<ProdutoDTO>> ObterProdutos(PagedList<Produto> produtos)
+        {
+            var metadata = new
+            {
+                produtos.TotalCount,
+                produtos.PageSize,
+                produtos.CurrentPage,
+                produtos.TotalPages,
+                produtos.HasNext,
+                produtos.HasPrevious
+            };
+
+            Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metadata));
+
+            var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
+
+            return Ok(produtosDto);
         }
     }
 }

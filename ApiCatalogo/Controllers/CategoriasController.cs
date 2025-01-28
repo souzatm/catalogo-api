@@ -2,11 +2,13 @@
 using ApiCatalogo.DTOs;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Models;
+using ApiCatalogo.Pagination;
 using ApiCatalogo.Repositories.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace ApiCatalogo.Controllers
 {
@@ -36,6 +38,20 @@ namespace ApiCatalogo.Controllers
             .AsNoTracking().ToListAsync();
         }
         */
+
+        [HttpGet("pagination")]
+        public ActionResult<IEnumerable<CategoriaDTO>> GetParameters([FromQuery]  CategoriasParameters categoriasParameters)
+        {
+            var categorias = _uof.CategoriaRepository.GetCategoriasParameters(categoriasParameters);
+            return ObterCategorias(categorias);
+        }
+
+        [HttpGet("filter/nome/pagination")]
+        public ActionResult<IEnumerable<CategoriaDTO>> GetProdutosFilterNome([FromQuery] CategoriasFiltroNome param)
+        {
+            var categorias = _uof.CategoriaRepository.GetCategoriasFiltroNome(param);
+            return ObterCategorias(categorias);
+        }
 
         [HttpGet]
         //[ServiceFilter(typeof(ApiLoggingFilter))]
@@ -120,6 +136,25 @@ namespace ApiCatalogo.Controllers
             var produtoDeletadoDto = _mapper.Map<CategoriaDTO>(produtoDeletado);
 
             return Ok(produtoDeletadoDto);
+        }
+
+        private ActionResult<IEnumerable<CategoriaDTO>> ObterCategorias(PagedList<Categoria> categorias)
+        {
+            var metadata = new
+            {
+                categorias.TotalCount,
+                categorias.PageSize,
+                categorias.CurrentPage,
+                categorias.TotalPages,
+                categorias.HasNext,
+                categorias.HasPrevious
+            };
+
+            Response.Headers.Append("X-Pagination", JsonConvert.SerializeObject(metadata));
+
+            var categoriasDto = _mapper.Map<IEnumerable<CategoriaDTO>>(categorias);
+
+            return Ok(categoriasDto);
         }
     }
 }

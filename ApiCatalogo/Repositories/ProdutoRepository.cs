@@ -13,6 +13,35 @@ namespace ApiCatalogo.Repositories
         {
         }
 
+        public PagedList<Produto> GetProdutosFiltroPreco(ProdutosFiltroPreco param)
+        {
+            var produtos = GetAll().AsQueryable();
+
+            if (param.Preco.HasValue && !string.IsNullOrEmpty(param.PrecoCriterio))
+            {
+                if (param.PrecoCriterio.Equals("maior", StringComparison.OrdinalIgnoreCase))
+                {
+                    produtos = produtos.Where(p => p.Preco > param.Preco.Value)
+                        .OrderBy(p => p.Preco);
+                }
+                else if (param.PrecoCriterio.Equals("menor", StringComparison.OrdinalIgnoreCase))
+                {
+                    produtos = produtos.Where(p => p.Preco < param.Preco.Value)
+                        .OrderBy(p => p.Preco); 
+                }
+                else if (param.PrecoCriterio.Equals("igual", StringComparison.OrdinalIgnoreCase))
+                {
+                    produtos = produtos.Where(p => p.Preco == param.Preco.Value)
+                        .OrderBy(param => param.Preco);
+                }
+            }
+
+            var produtosFiltrados = PagedList<Produto>.ToPagedList(produtos, param.PageNumber, param.PageSize);
+
+            return produtosFiltrados;
+            
+        }
+
         /*public IEnumerable<Produto> GetProdutosParameters(ProdutosParameters parameters)
         {
             return GetAll()
