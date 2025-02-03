@@ -40,24 +40,24 @@ namespace ApiCatalogo.Controllers
         */
 
         [HttpGet("pagination")]
-        public ActionResult<IEnumerable<CategoriaDTO>> GetParameters([FromQuery]  CategoriasParameters categoriasParameters)
+        public async Task<ActionResult<IEnumerable<CategoriaDTO>>> GetParameters([FromQuery]  CategoriasParameters categoriasParameters)
         {
-            var categorias = _uof.CategoriaRepository.GetCategoriasParameters(categoriasParameters);
+            var categorias = await _uof.CategoriaRepository.GetCategoriasParametersAsync(categoriasParameters);
             return ObterCategorias(categorias);
         }
 
         [HttpGet("filter/nome/pagination")]
-        public ActionResult<IEnumerable<CategoriaDTO>> GetProdutosFilterNome([FromQuery] CategoriasFiltroNome param)
+        public async Task<ActionResult<IEnumerable<CategoriaDTO>>> GetProdutosFilterNome([FromQuery] CategoriasFiltroNome param)
         {
-            var categorias = _uof.CategoriaRepository.GetCategoriasFiltroNome(param);
+            var categorias = await _uof.CategoriaRepository.GetCategoriasFiltroNomeAsync(param);
             return ObterCategorias(categorias);
         }
 
         [HttpGet]
         //[ServiceFilter(typeof(ApiLoggingFilter))]
-        public ActionResult<IEnumerable<CategoriaDTO>> Get()
+        public async Task<ActionResult<IEnumerable<CategoriaDTO>>> Get()
         {
-            var categorias = _uof.CategoriaRepository.GetAll();
+            var categorias = await _uof.CategoriaRepository.GetAllAsync();
 
             var categoriasDto = _mapper.Map<IEnumerable<CategoriaDTO>>(categorias);
 
@@ -65,10 +65,10 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpGet("{id:int}", Name = "ObterCategoria")]
-        public ActionResult<CategoriaDTO> GetCategoria(int id)
+        public async Task<ActionResult<CategoriaDTO>> GetCategoriaAsync(int id)
         {
 
-            var categoria = _uof.CategoriaRepository.GetById(c=> c.CategoriaId == id);
+            var categoria = await _uof.CategoriaRepository.GetByIdAsync(c=> c.CategoriaId == id);
 
             if (categoria is null)
             {
@@ -82,7 +82,7 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpPost]
-        public ActionResult<CategoriaDTO> Post(CategoriaDTO categoriaDto)
+        public async Task<ActionResult<CategoriaDTO>> Post(CategoriaDTO categoriaDto)
         {
             if (categoriaDto is null)
             {
@@ -92,7 +92,7 @@ namespace ApiCatalogo.Controllers
 
             var categoria = _mapper.Map<Categoria>(categoriaDto);
             var novaCategoria =  _uof.CategoriaRepository.Create(categoria);
-            _uof.Commit();
+            await _uof.CommitAsync();
 
             var novaCategoriaDto = _mapper.Map<CategoriaDTO>(novaCategoria);
 
@@ -101,7 +101,7 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public ActionResult<CategoriaDTO> Put(int id, CategoriaDTO categoriaDto)
+        public async Task<ActionResult<CategoriaDTO>> Put(int id, CategoriaDTO categoriaDto)
         {
             if (id != categoriaDto.CategoriaId)
             {
@@ -111,7 +111,7 @@ namespace ApiCatalogo.Controllers
 
             var categoria = _mapper.Map<Categoria>(categoriaDto);
             var categoriaAtualizada = _uof.CategoriaRepository.Update(categoria);
-            _uof.Commit();
+            await _uof.CommitAsync();
 
             var categoriaAtualizadaDto = _mapper.Map<CategoriaDTO>(categoriaAtualizada);
 
@@ -120,9 +120,9 @@ namespace ApiCatalogo.Controllers
 
         [HttpDelete("{id:int}")]
         [ServiceFilter(typeof(ApiLoggingFilter))]
-        public ActionResult<CategoriaDTO> Delete(int id)
+        public async Task<ActionResult<CategoriaDTO>> Delete(int id)
         {
-            var categoria = _uof.CategoriaRepository.GetById(c => c.CategoriaId == id);
+            var categoria = await _uof.CategoriaRepository.GetByIdAsync(c => c.CategoriaId == id);
 
             if (categoria is null)
             {
@@ -131,7 +131,7 @@ namespace ApiCatalogo.Controllers
             };
 
             var produtoDeletado = _uof.CategoriaRepository.Delete(categoria);
-            _uof.Commit();
+            await _uof.CommitAsync();
 
             var produtoDeletadoDto = _mapper.Map<CategoriaDTO>(produtoDeletado);
 
