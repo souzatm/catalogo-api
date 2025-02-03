@@ -4,6 +4,7 @@ using ApiCatalogo.Pagination;
 using ApiCatalogo.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using X.PagedList;
 
 namespace ApiCatalogo.Repositories
 {
@@ -13,7 +14,7 @@ namespace ApiCatalogo.Repositories
         {
         }
 
-        public async Task<PagedList<Produto>> GetProdutosFiltroPrecoAsync(ProdutosFiltroPreco param)
+        public async Task<IPagedList<Produto>> GetProdutosFiltroPrecoAsync(ProdutosFiltroPreco param)
         {
             var produtos = await GetAllAsync();
 
@@ -36,8 +37,9 @@ namespace ApiCatalogo.Repositories
                 }
             }
 
-            var produtosFiltrados = PagedList<Produto>
-                .ToPagedList(produtos.AsQueryable(), param.PageNumber, param.PageSize);
+            //var produtosFiltrados = PagedList<Produto>.ToPagedList(produtos.AsQueryable(), param.PageNumber, param.PageSize);
+
+            var produtosFiltrados = await produtos.ToPagedListAsync(param.PageNumber, param.PageSize);
 
             return produtosFiltrados;
             
@@ -52,14 +54,15 @@ namespace ApiCatalogo.Repositories
                 .ToList();
         }*/
 
-        public async Task<PagedList<Produto>> GetProdutosParametersAsync(ProdutosParameters parameters)
+        public async Task<IPagedList<Produto>> GetProdutosParametersAsync(ProdutosParameters parameters)
         {
             var produtos = await GetAllAsync();
                
             var produtosOrdenados = produtos.OrderBy(p => p.ProdutoId).AsQueryable();
 
-            var resultado = PagedList<Produto>
-                .ToPagedList(produtosOrdenados, parameters.PageNumber, parameters.PageSize);
+            //var resultado = PagedList<Produto>.ToPagedList(produtosOrdenados, parameters.PageNumber, parameters.PageSize);
+
+            var resultado = await produtosOrdenados.ToPagedListAsync(parameters.PageNumber, parameters.PageSize);
 
             return resultado;
         }
