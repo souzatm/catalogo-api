@@ -18,6 +18,7 @@ namespace ApiCatalogo.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ApiConventionType(typeof(DefaultApiConventions))] //Aplica ApiConventionMethod a todos os Actions do controlador
     public class ProdutosController : ControllerBase
     {
         private readonly ILogger<ProdutosController> _logger;

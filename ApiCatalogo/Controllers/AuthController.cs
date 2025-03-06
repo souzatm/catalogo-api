@@ -1,4 +1,4 @@
-﻿using ApiCatalogo.DTOs;
+﻿ using ApiCatalogo.DTOs;
 using ApiCatalogo.Models;
 using ApiCatalogo.Services;
 using Microsoft.AspNetCore.Authorization;

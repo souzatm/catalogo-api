@@ -18,6 +18,7 @@ namespace ApiCatalogo.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [EnableRateLimiting("fixedwindow")]
+    [Produces("application/json")] // Padroniza o retorno para application/json
     public class CategoriasController : ControllerBase
     {
         private readonly IUnitOfWork _uof;
@@ -57,6 +58,10 @@ namespace ApiCatalogo.Controllers
             return ObterCategorias(categorias);
         }
 
+        /// <summary>
+        /// Obtem uma lista de objetos Categoria
+        /// </summary>
+        /// <returns>Uma lista de objetos Categoria</returns>
         [HttpGet]
         [Authorize]
         //[ServiceFilter(typeof(ApiLoggingFilter))]
@@ -69,7 +74,14 @@ namespace ApiCatalogo.Controllers
             return Ok(categoriasDto);
         }
 
+        /// <summary>
+        /// Obtem uma categoria por seu Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>Objeto Categoria</returns>
         [HttpGet("{id:int}", Name = "ObterCategoria")]
+        [ProducesResponseType(StatusCodes.Status200OK)] 
+        //[ProducesResponseType(StatusCodes.Status404NotFound)] NotFound no Swagger caso o recurso não seja encontrado
         public async Task<ActionResult<CategoriaDTO>> GetCategoriaAsync(int id)
         {
 
@@ -86,6 +98,22 @@ namespace ApiCatalogo.Controllers
             return Ok(categoria);
         }
 
+        /// <summary>
+        /// Inclui uma nova categoria
+        /// </summary>
+        /// <remarks>
+        /// Exemplo de request:
+        /// 
+        ///     POST api/categorias
+        ///     {
+        ///         "categoriaId": 1,
+        ///         "nome": "categoria",
+        ///         "imagemUrl": "http://teste.com/imagem.jpg"
+        ///     }
+        /// </remarks>
+        /// <param name="categoriaDto"></param>
+        /// <returns>O objeto Categoria incluído</returns>
+        /// <remarks>Retorna um objeto Categoria incluído</remarks>
         [HttpPost]
         public async Task<ActionResult<CategoriaDTO>> Post(CategoriaDTO categoriaDto)
         {
