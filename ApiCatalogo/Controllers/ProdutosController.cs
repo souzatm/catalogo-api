@@ -21,13 +21,13 @@ namespace ApiCatalogo.Controllers
     [ApiConventionType(typeof(DefaultApiConventions))] //Aplica ApiConventionMethod a todos os Actions do controlador
     public class ProdutosController : ControllerBase
     {
-        private readonly ILogger<ProdutosController> _logger;
+        //private readonly ILogger<ProdutosController> _logger;
         private readonly IUnitOfWork _uof;
         private readonly IMapper _mapper;
 
-        public ProdutosController(ILogger<ProdutosController> logger, IUnitOfWork uof, IMapper mapper)
+        public ProdutosController(IUnitOfWork uof, IMapper mapper)
         {
-            _logger = logger;
+            //_logger = logger;
             _uof = uof;
             _mapper = mapper;
         }
@@ -65,13 +65,26 @@ namespace ApiCatalogo.Controllers
         [HttpGet]
         [Authorize(Policy = "UserOnly")]
         [ServiceFilter(typeof(ApiLoggingFilter))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<ProdutoDTO>>> GetProdutos()
         {
-            var produtos = await _uof.ProdutoRepository.GetAllAsync();
+            try
+            {
+                var produtos = await _uof.ProdutoRepository.GetAllAsync(); 
+                if (produtos is null)
+                {
+                    return NotFound();
+                }
 
-            var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
+                var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
 
-            return Ok(produtosDto);
+                return Ok(produtosDto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            
         }
 
 
@@ -79,11 +92,16 @@ namespace ApiCatalogo.Controllers
         [ServiceFilter(typeof(ApiLoggingFilter))]
         public async Task<ActionResult<ProdutoDTO>> GetById(int id)
         {
+            if (id == null || id <= 0)
+            {
+                return BadRequest("ID de produto inválido");
+            }
+
             var produto = await _uof.ProdutoRepository.GetByIdAsync(p => p.ProdutoId == id);
 
             if (produto is null)
             {
-                _logger.LogError($"Produto com id={id} não encontrado.");
+                //_logger.LogError($"Produto com id={id} não encontrado.");
                 return NotFound($"Produto com id={id} não encontrado.");
             }
 
@@ -93,12 +111,14 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ProdutoDTO>> Post(ProdutoDTO produtoDto)
         {
             if (produtoDto is null)
             {
-                _logger.LogError("Dados inválidos.");
-                return BadRequest("Dados inválidos.");
+                //_logger.LogError("Dados inválidos.");
+                return BadRequest();
             }
 
             var produto = _mapper.Map<Produto>(produtoDto);
@@ -155,12 +175,14 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ProdutoDTO>> Put(int id, ProdutoDTO produtoDto)
         {
             if (id != produtoDto.ProdutoId)
             {
-                _logger.LogError($"Produto com id={id} não encontrado");
-                return BadRequest($"Produto com id={id} não encontrado");
+                //_logger.LogError($"Produto com id={id} não encontrado");
+                return BadRequest();
             }
 
             var produto = _mapper.Map<Produto>(produtoDto);
@@ -174,6 +196,8 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ProdutoDTO>> Delete(int id)
         {
             var produto = await _uof.ProdutoRepository.GetByIdAsync(p => p.ProdutoId == id);
@@ -181,7 +205,7 @@ namespace ApiCatalogo.Controllers
 
             if (produto is null)
             {
-                _logger.LogError($"Produto com id={id} não encontrado");
+                //_logger.LogError($"Produto com id={id} não encontrado");
                 return NotFound($"Produto com id={id} não encontrado");
             }
 
